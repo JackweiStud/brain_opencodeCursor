@@ -55,16 +55,22 @@ const onSchulteComplete = (time: number, errors: number) => {
   showGameResult.value = true
 }
 
-// 记忆游戏完成
+// 记忆游戏完成 - 延迟显示继续按钮，让用户看到结果
 const onMemoryComplete = (score: number) => {
   gamesStore.recordMemory(score)
-  showGameResult.value = true
+  // 延迟2秒后显示继续按钮，让用户看清结果
+  setTimeout(() => {
+    showGameResult.value = true
+  }, 2000)
 }
 
-// 逻辑游戏完成
+// 逻辑游戏完成 - 延迟显示继续按钮，让用户看到结果
 const onLogicComplete = (correct: boolean, time: number) => {
   gamesStore.recordLogic(correct, time)
-  showGameResult.value = true
+  // 延迟2秒后显示继续按钮，让用户看清结果
+  setTimeout(() => {
+    showGameResult.value = true
+  }, 2000)
 }
 
 // 创意游戏完成
@@ -175,38 +181,52 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- 游戏组件 -->
+      <!-- 游戏组件 - 使用 key 强制重新渲染 -->
       <SchulteGrid 
-        v-if="currentGame === 'schulte' && !showGameResult"
+        v-if="currentGame === 'schulte'"
+        :key="`schulte-${currentRound}`"
         :round="currentRound"
         @complete="onSchulteComplete"
       />
 
       <MemoryGame 
-        v-else-if="currentGame === 'memory' && !showGameResult"
+        v-else-if="currentGame === 'memory'"
+        :key="`memory-${currentRound}`"
         :round="currentRound"
         @complete="onMemoryComplete"
       />
 
       <LogicGame 
-        v-else-if="currentGame === 'logic' && !showGameResult"
+        v-else-if="currentGame === 'logic'"
+        :key="`logic-${currentRound}`"
         :round="currentRound"
         @complete="onLogicComplete"
       />
 
       <CreativeGame 
-        v-else-if="currentGame === 'creative' && !showGameResult"
+        v-else-if="currentGame === 'creative'"
+        :key="`creative-${currentRound}`"
         :round="currentRound"
         @complete="onCreativeComplete"
       />
 
       <!-- 轮次结果后的继续按钮 -->
-      <div v-if="showGameResult" class="w-full max-w-md mt-6">
+      <div v-if="showGameResult" class="w-full max-w-md mt-6 animate-fade-in">
         <ClayButton size="lg" class="w-full" @click="nextRound">
           {{ currentRound < currentGameConfig.rounds ? '下一轮 →' : '继续 →' }}
         </ClayButton>
       </div>
     </div>
+
+    <style scoped>
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    </style>
 
     <!-- 游戏切换过渡 -->
     <div v-else-if="phase === 'transition'" class="flex flex-col items-center justify-center min-h-screen p-8">

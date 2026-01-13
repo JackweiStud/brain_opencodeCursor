@@ -8,6 +8,13 @@ export interface ExportOptions {
 }
 
 /**
+ * 等待一段时间
+ */
+function wait(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+/**
  * 将 HTML 元素导出为 PDF
  */
 export async function exportToPDF(
@@ -16,18 +23,28 @@ export async function exportToPDF(
 ): Promise<void> {
   const {
     filename = '童智星探-评估报告',
-    quality = 0.95,
+    quality = 0.92,
     scale = 2
   } = options
 
   try {
+    // 等待 ECharts 图表渲染完成
+    await wait(500)
+    
     // 生成 canvas
     const canvas = await html2canvas(element, {
       scale,
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#F8FAFC',
-      logging: false
+      logging: false,
+      onclone: (clonedDoc) => {
+        // 确保克隆文档中的 canvas 元素可见
+        const canvasElements = clonedDoc.querySelectorAll('canvas')
+        canvasElements.forEach((c) => {
+          c.style.display = 'block'
+        })
+      }
     })
 
     // 计算 PDF 尺寸

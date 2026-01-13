@@ -12,58 +12,68 @@ const emit = defineEmits<{
   'complete': [correct: boolean, time: number]
 }>()
 
-// 题目库
-const questions = [
-  {
-    sequence: ['🔴', '🔵', '🔴', '🔵', '🔴', '?'],
-    options: ['🔵', '🔴', '🟢', '🟡'],
-    answer: 0,
-    hint: '红蓝交替'
-  },
-  {
-    sequence: ['⭐', '⭐', '🌙', '⭐', '⭐', '🌙', '⭐', '⭐', '?'],
-    options: ['⭐', '🌙', '☀️', '🌟'],
-    answer: 1,
-    hint: '两星一月循环'
-  },
-  {
-    sequence: ['1️⃣', '2️⃣', '3️⃣', '5️⃣', '8️⃣', '?'],
-    options: ['1️⃣1️⃣', '1️⃣2️⃣', '1️⃣3️⃣', '1️⃣0️⃣'],
-    answer: 2,
-    hint: '斐波那契数列'
-  },
-  {
-    sequence: ['🟥', '🟧', '🟨', '🟩', '?'],
-    options: ['🟦', '🟥', '🟪', '⬜'],
-    answer: 0,
-    hint: '彩虹色顺序'
-  },
-  {
-    sequence: ['😀', '😃', '😄', '😁', '?'],
-    options: ['😆', '😀', '😢', '😎'],
-    answer: 0,
-    hint: '表情逐渐变化'
-  },
-  {
-    sequence: ['🐱', '🐱🐱', '🐱🐱🐱', '?'],
-    options: ['🐱🐱🐱🐱', '🐱', '🐶', '🐱🐱'],
-    answer: 0,
-    hint: '数量递增'
-  }
+// 题目库 - 按难度分组，确保每轮不重复
+const questionsByRound = [
+  // 第1轮 - 简单
+  [
+    {
+      sequence: ['🔴', '🔵', '🔴', '🔵', '🔴', '?'],
+      options: ['🔵', '🔴', '🟢', '🟡'],
+      answer: 0,
+      hint: '红蓝交替'
+    },
+    {
+      sequence: ['🐱', '🐱🐱', '🐱🐱🐱', '?'],
+      options: ['🐱🐱🐱🐱', '🐱', '🐶', '🐱🐱'],
+      answer: 0,
+      hint: '数量递增'
+    }
+  ],
+  // 第2轮 - 中等
+  [
+    {
+      sequence: ['🟥', '🟧', '🟨', '🟩', '?'],
+      options: ['🟦', '🟥', '🟪', '⬜'],
+      answer: 0,
+      hint: '彩虹色顺序'
+    },
+    {
+      sequence: ['😀', '😃', '😄', '😁', '?'],
+      options: ['😆', '😀', '😢', '😎'],
+      answer: 0,
+      hint: '表情逐渐变化'
+    }
+  ],
+  // 第3轮 - 困难
+  [
+    {
+      sequence: ['⭐', '⭐', '🌙', '⭐', '⭐', '🌙', '⭐', '⭐', '?'],
+      options: ['⭐', '🌙', '☀️', '🌟'],
+      answer: 1,
+      hint: '两星一月循环'
+    },
+    {
+      sequence: ['1️⃣', '2️⃣', '3️⃣', '5️⃣', '8️⃣', '?'],
+      options: ['1️⃣1️⃣', '1️⃣2️⃣', '1️⃣3️⃣', '1️⃣0️⃣'],
+      answer: 2,
+      hint: '斐波那契数列'
+    }
+  ]
 ]
 
 // 游戏状态
 const phase = ref<'ready' | 'playing' | 'result'>('ready')
-const currentQuestion = ref(questions[0])
+const currentQuestion = ref(questionsByRound[0][0])
 const selectedOption = ref<number | null>(null)
 const startTime = ref(0)
 const elapsedTime = ref(0)
 
-// 根据轮次选择题目
+// 根据轮次选择题目 - 从对应难度组随机选择
 const selectQuestion = () => {
-  // 简单随机选择，实际可以根据难度
-  const index = (props.round - 1 + Math.floor(Math.random() * 2)) % questions.length
-  currentQuestion.value = questions[index]
+  const roundIndex = Math.min(props.round - 1, questionsByRound.length - 1)
+  const questions = questionsByRound[roundIndex]
+  const randomIndex = Math.floor(Math.random() * questions.length)
+  currentQuestion.value = questions[randomIndex]
 }
 
 // 开始游戏
