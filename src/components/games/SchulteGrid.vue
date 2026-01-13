@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import { ClayButton, ClayCard } from '../common'
 
 interface Props {
@@ -12,6 +12,10 @@ const emit = defineEmits<{
   'complete': [time: number, errors: number]
 }>()
 
+// 根据轮次确定方格大小：第1轮3×3，第2轮4×4，第3轮5×5
+const gridSize = computed(() => props.round + 2)  // 1→3, 2→4, 3→5
+const totalNumbers = computed(() => gridSize.value * gridSize.value)  // 9, 16, 25
+
 // 游戏状态
 const phase = ref<'ready' | 'playing' | 'finished'>('ready')
 const grid = ref<number[]>([])
@@ -21,9 +25,9 @@ const elapsedTime = ref(0)
 const errors = ref(0)
 const timer = ref<number | null>(null)
 
-// 生成随机排列的 1-25
+// 生成随机排列的数字（根据方格大小）
 const generateGrid = () => {
-  const numbers = Array.from({ length: 25 }, (_, i) => i + 1)
+  const numbers = Array.from({ length: totalNumbers.value }, (_, i) => i + 1)
   // Fisher-Yates 洗牌算法
   for (let i = numbers.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
@@ -59,7 +63,7 @@ const clickNumber = (num: number) => {
 
   if (num === currentNumber.value) {
     // 正确
-    if (currentNumber.value === 25) {
+    if (currentNumber.value === totalNumbers.value) {
       // 完成
       finishGame()
     } else {
@@ -111,9 +115,12 @@ onUnmounted(() => {
         <h3 class="font-heading text-2xl text-clay-text mb-4">
           第 {{ round }} 轮
         </h3>
-        <p class="font-body text-clay-text/70 mb-6">
-          按照 1-25 的顺序<br>
+        <p class="font-body text-clay-text/70 mb-4">
+          按照 1-{{ totalNumbers }} 的顺序<br>
           尽快点击所有数字
+        </p>
+        <p class="font-body text-sm text-clay-text/50 mb-6">
+          {{ gridSize }}×{{ gridSize }} 方格
         </p>
         <ClayButton size="lg" @click="startGame">
           开始 →
@@ -137,13 +144,19 @@ onUnmounted(() => {
       </div>
 
       <!-- 方格 -->
-      <div class="grid grid-cols-5 gap-2">
+      <div 
+        class="grid gap-2"
+        :style="{ gridTemplateColumns: `repeat(${gridSize}, 1fr)` }"
+      >
         <button
           v-for="(num, index) in grid"
           :key="index"
           @click="clickNumber(num)"
-          class="aspect-square rounded-clay border-4 border-clay-peach-dark font-heading text-2xl text-clay-text transition-all duration-150 hover:scale-95 active:scale-90"
-          :class="num < currentNumber ? 'cursor-default' : 'cursor-pointer bg-white hover:bg-clay-peach/30'"
+          class="aspect-square rounded-clay border-4 border-clay-peach-dark font-heading text-clay-text transition-all duration-150 hover:scale-95 active:scale-90"
+          :class="[
+            num < currentNumber ? 'cursor-default' : 'cursor-pointer bg-white hover:bg-clay-peach/30',
+            gridSize === 3 ? 'text-3xl' : gridSize === 4 ? 'text-2xl' : 'text-xl'
+          ]"
           :style="getCellStyle(num)"
           :disabled="num < currentNumber"
         >
