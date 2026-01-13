@@ -1,0 +1,4 @@
+export { default as ClayButton } from './ClayButton.vue'
+export { default as ClayCard } from './ClayCard.vue'
+export { default as ProgressBar } from './ProgressBar.vue'
+export { default as AgeSelector } from './AgeSelector.vue'
