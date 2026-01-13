@@ -218,16 +218,6 @@ onMounted(() => {
       </div>
     </div>
 
-    <style scoped>
-    .animate-fade-in {
-      animation: fadeIn 0.3s ease-out;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    </style>
-
     <!-- 游戏切换过渡 -->
     <div v-else-if="phase === 'transition'" class="flex flex-col items-center justify-center min-h-screen p-8">
       <ClayCard padding="lg" class="max-w-md w-full text-center">
@@ -281,3 +271,13 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
