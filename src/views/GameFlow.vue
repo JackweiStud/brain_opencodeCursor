@@ -65,7 +65,7 @@ const cleanupTimer = () => {
 watch(phase, (newPhase) => {
   if (newPhase === 'transition') {
     // 游戏切换过渡时自动跳转
-    startAutoNext(continueToNextGame, 3)
+    startAutoNext(continueToNextGame, 1.5)
   }
 })
 
@@ -94,34 +94,28 @@ const startGames = () => {
 const onSchulteComplete = (time: number, errors: number) => {
   gamesStore.recordSchulte(time, errors)
   showGameResult.value = true
-  startAutoNext(nextRound, 3)
+  startAutoNext(nextRound, 1.5)
 }
 
-// 记忆游戏完成 - 延迟显示继续按钮，让用户看到结果
+// 记忆游戏完成 - 直接显示结果后自动跳转
 const onMemoryComplete = (score: number) => {
   gamesStore.recordMemory(score)
-  // 延迟2秒后显示继续按钮，让用户看清结果
-  setTimeout(() => {
-    showGameResult.value = true
-    startAutoNext(nextRound, 3)
-  }, 2000)
+  showGameResult.value = true
+  startAutoNext(nextRound, 1.5)
 }
 
-// 逻辑游戏完成 - 延迟显示继续按钮，让用户看到结果
+// 逻辑游戏完成 - 直接显示结果后自动跳转
 const onLogicComplete = (correct: boolean, time: number) => {
   gamesStore.recordLogic(correct, time)
-  // 延迟2秒后显示继续按钮，让用户看清结果
-  setTimeout(() => {
-    showGameResult.value = true
-    startAutoNext(nextRound, 3)
-  }, 2000)
+  showGameResult.value = true
+  startAutoNext(nextRound, 1.5)
 }
 
 // 创意游戏完成
 const onCreativeComplete = (answers: string[]) => {
   gamesStore.recordCreative(answers)
   showGameResult.value = true
-  startAutoNext(nextRound, 3)
+  startAutoNext(nextRound, 1.5)
 }
 
 // 下一轮/下一个游戏
@@ -257,23 +251,6 @@ onMounted(() => {
         @complete="onCreativeComplete"
       />
 
-      <!-- 轮次结果后的继续按钮 -->
-      <div v-if="showGameResult" class="w-full max-w-md mt-6 animate-fade-in text-center">
-        <div v-if="showAutoNext" class="mb-3 flex items-center justify-center gap-2">
-          <span class="text-sm text-clay-text/50 font-body">
-            {{ autoNextSeconds }} 秒后自动继续
-          </span>
-          <button 
-            @click="cancelAutoNext"
-            class="text-xs bg-clay-lilac/30 hover:bg-clay-lilac/50 text-clay-text/70 px-2 py-0.5 rounded-full transition-colors"
-          >
-            暂停
-          </button>
-        </div>
-        <ClayButton size="lg" class="w-full" @click="nextRound">
-          {{ currentRound < currentGameConfig.rounds ? '下一轮 →' : '继续 →' }}
-        </ClayButton>
-      </div>
     </div>
 
     <!-- 游戏切换过渡 -->
@@ -289,23 +266,14 @@ onMounted(() => {
             {{ currentGameConfig.icon }} {{ currentGameConfig.name }}
           </span>
         </p>
-        <p class="font-body text-sm text-clay-text/50 mb-6">
+        <p class="font-body text-sm text-clay-text/50 mb-4">
           {{ currentGameConfig.description }}
         </p>
-        <div v-if="showAutoNext" class="mb-3 flex items-center justify-center gap-2">
+        <div v-if="showAutoNext" class="flex items-center justify-center">
           <span class="text-sm text-clay-text/50 font-body">
-            {{ autoNextSeconds }} 秒后自动开始
+            即将开始...
           </span>
-          <button 
-            @click="cancelAutoNext"
-            class="text-xs bg-white/50 hover:bg-white text-clay-text/70 px-2 py-0.5 rounded-full transition-colors"
-          >
-            暂停
-          </button>
         </div>
-        <ClayButton size="lg" class="w-full" variant="secondary" @click="continueToNextGame">
-          开始 →
-        </ClayButton>
       </ClayCard>
     </div>
 

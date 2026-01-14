@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from 'vue'
-import { ClayButton, ClayCard } from '../common'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ClayCard } from '../common'
 
 interface Props {
   round: number  // 当前轮次 1-3
@@ -17,7 +17,7 @@ const gridSize = computed(() => props.round + 2)  // 1→3, 2→4, 3→5
 const totalNumbers = computed(() => gridSize.value * gridSize.value)  // 9, 16, 25
 
 // 游戏状态
-const phase = ref<'ready' | 'playing' | 'finished'>('ready')
+const phase = ref<'playing' | 'finished'>('playing')
 const grid = ref<number[]>([])
 const currentNumber = ref(1)
 const startTime = ref(0)
@@ -98,6 +98,11 @@ const getCellStyle = (num: number) => {
   return {}
 }
 
+// 组件挂载后自动开始游戏
+onMounted(() => {
+  startGame()
+})
+
 // 清理
 onUnmounted(() => {
   if (timer.value) {
@@ -108,28 +113,8 @@ onUnmounted(() => {
 
 <template>
   <div class="w-full max-w-md mx-auto">
-    <!-- 准备阶段 -->
-    <div v-if="phase === 'ready'" class="text-center">
-      <ClayCard padding="lg">
-        <div class="text-5xl mb-4">🎯</div>
-        <h3 class="font-heading text-2xl text-clay-text mb-4">
-          第 {{ round }} 轮
-        </h3>
-        <p class="font-body text-clay-text/70 mb-4">
-          按照 1-{{ totalNumbers }} 的顺序<br>
-          尽快点击所有数字
-        </p>
-        <p class="font-body text-sm text-clay-text/50 mb-6">
-          {{ gridSize }}×{{ gridSize }} 方格
-        </p>
-        <ClayButton size="lg" @click="startGame">
-          开始 →
-        </ClayButton>
-      </ClayCard>
-    </div>
-
     <!-- 游戏进行中 -->
-    <div v-else-if="phase === 'playing'">
+    <div v-if="phase === 'playing'">
       <!-- 状态栏 -->
       <div class="flex justify-between items-center mb-4 px-2">
         <div class="font-body text-clay-text/70">

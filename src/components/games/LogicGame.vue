@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ClayButton, ClayCard } from '../common'
 
 interface Props {
@@ -62,7 +62,12 @@ const questionsByRound = [
 ]
 
 // 游戏状态
-const phase = ref<'ready' | 'playing' | 'result'>('ready')
+const phase = ref<'playing' | 'result'>('playing')
+
+// 组件挂载后自动开始游戏
+onMounted(() => {
+  startGame()
+})
 const currentQuestion = ref(questionsByRound[0][0])
 const selectedOption = ref<number | null>(null)
 const startTime = ref(0)
@@ -109,25 +114,8 @@ const isCorrect = computed(() => {
 
 <template>
   <div class="w-full max-w-md mx-auto">
-    <!-- 准备阶段 -->
-    <div v-if="phase === 'ready'" class="text-center">
-      <ClayCard padding="lg">
-        <div class="text-5xl mb-4">🧩</div>
-        <h3 class="font-heading text-2xl text-clay-text mb-4">
-          第 {{ round }} 轮
-        </h3>
-        <p class="font-body text-clay-text/70 mb-6">
-          观察图形规律<br>
-          选择下一个应该是什么
-        </p>
-        <ClayButton size="lg" @click="startGame">
-          开始 →
-        </ClayButton>
-      </ClayCard>
-    </div>
-
     <!-- 游戏进行中 -->
-    <div v-else-if="phase === 'playing'">
+    <div v-if="phase === 'playing'">
       <ClayCard padding="lg" class="mb-6">
         <p class="font-body text-sm text-clay-text/50 mb-4 text-center">
           找出规律，选择 ? 应该是什么

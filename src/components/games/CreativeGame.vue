@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ClayButton, ClayCard } from '../common'
 
 interface Props {
@@ -37,7 +37,7 @@ const prompts = [
 ]
 
 // 游戏状态
-const phase = ref<'ready' | 'thinking' | 'result'>('ready')
+const phase = ref<'thinking' | 'result'>('thinking')
 const currentPrompt = ref(prompts[0])
 const answers = ref<string[]>([])
 const currentInput = ref('')
@@ -105,6 +105,11 @@ const formatTime = (seconds: number) => {
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
+// 组件挂载后自动开始游戏
+onMounted(() => {
+  startGame()
+})
+
 // 清理
 onUnmounted(() => {
   if (timer.value) {
@@ -115,28 +120,8 @@ onUnmounted(() => {
 
 <template>
   <div class="w-full max-w-md mx-auto">
-    <!-- 准备阶段 -->
-    <div v-if="phase === 'ready'" class="text-center">
-      <ClayCard padding="lg">
-        <div class="text-5xl mb-4">💡</div>
-        <h3 class="font-heading text-2xl text-clay-text mb-4">
-          第 {{ round }} 轮
-        </h3>
-        <p class="font-body text-clay-text/70 mb-4">
-          尽可能多地想出创意用途<br>
-          越多越好，越独特越好！
-        </p>
-        <p class="font-body text-sm text-clay-text/50 mb-6">
-          限时 60 秒
-        </p>
-        <ClayButton size="lg" @click="startGame">
-          开始 →
-        </ClayButton>
-      </ClayCard>
-    </div>
-
     <!-- 思考阶段 -->
-    <div v-else-if="phase === 'thinking'">
+    <div v-if="phase === 'thinking'">
       <!-- 计时器 -->
       <div class="text-center mb-4">
         <span 

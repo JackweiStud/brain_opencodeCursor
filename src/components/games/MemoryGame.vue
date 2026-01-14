@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ClayButton, ClayCard } from '../common'
 
 interface Props {
@@ -20,7 +20,7 @@ const targetCount = computed(() => props.round + 2)  // 需要记忆的数量 3,
 const symbols = ['🌟', '❤️', '🔷', '🟢', '🔶', '💜', '🟠', '🔵']
 
 // 游戏状态
-const phase = ref<'ready' | 'memorize' | 'recall' | 'result'>('ready')
+const phase = ref<'memorize' | 'recall' | 'result'>('memorize')
 const targetCells = ref<number[]>([])  // 需要记忆的位置
 const selectedCells = ref<number[]>([])  // 玩家选择的位置
 const memorizeTimer = ref<number | null>(null)
@@ -109,6 +109,11 @@ const correctCount = computed(() => {
   return selectedCells.value.filter(c => targetCells.value.includes(c)).length
 })
 
+// 组件挂载后自动开始游戏
+onMounted(() => {
+  startGame()
+})
+
 // 清理
 onUnmounted(() => {
   if (memorizeTimer.value) {
@@ -119,27 +124,8 @@ onUnmounted(() => {
 
 <template>
   <div class="w-full max-w-md mx-auto">
-    <!-- 准备阶段 -->
-    <div v-if="phase === 'ready'" class="text-center">
-      <ClayCard padding="lg">
-        <div class="text-5xl mb-4">🧠</div>
-        <h3 class="font-heading text-2xl text-clay-text mb-4">
-          第 {{ round }} 轮
-        </h3>
-        <p class="font-body text-clay-text/70 mb-4">
-          记住 <span class="font-heading text-xl text-clay-peach-dark">{{ targetCount }}</span> 个图形的位置
-        </p>
-        <p class="font-body text-sm text-clay-text/50 mb-6">
-          {{ gridSize }}×{{ gridSize }} 方格 · 记忆时间 3 秒
-        </p>
-        <ClayButton size="lg" @click="startGame">
-          开始 →
-        </ClayButton>
-      </ClayCard>
-    </div>
-
     <!-- 记忆阶段 -->
-    <div v-else-if="phase === 'memorize'">
+    <div v-if="phase === 'memorize'">
       <div class="text-center mb-4">
         <span class="font-heading text-3xl text-clay-text">
           记住位置！ {{ countdown }}
