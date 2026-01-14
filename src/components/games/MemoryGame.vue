@@ -124,42 +124,26 @@ onUnmounted(() => {
 
 <template>
   <div class="w-full max-w-md mx-auto">
-    <!-- 记忆阶段 -->
-    <div v-if="phase === 'memorize'">
-      <div class="text-center mb-4">
-        <span class="font-heading text-3xl text-clay-text">
-          记住位置！ {{ countdown }}
-        </span>
+    <!-- 记忆阶段 & 回忆阶段 - 统一布局结构 -->
+    <div v-if="phase === 'memorize' || phase === 'recall'">
+      <!-- 顶部提示区域 - 固定高度保持一致 -->
+      <div class="text-center mb-4 h-9 flex items-center justify-center">
+        <template v-if="phase === 'memorize'">
+          <span class="font-heading text-3xl text-clay-text">
+            记住位置！ {{ countdown }}
+          </span>
+        </template>
+        <template v-else>
+          <span class="font-body text-clay-text/70">
+            选择 {{ targetCount }} 个位置
+          </span>
+          <span class="font-heading text-lg text-clay-text ml-2">
+            ({{ selectedCells.length }}/{{ targetCount }})
+          </span>
+        </template>
       </div>
 
-      <div 
-        class="grid gap-2"
-        :style="{ gridTemplateColumns: `repeat(${gridSize}, 1fr)` }"
-      >
-        <div
-          v-for="i in totalCells"
-          :key="i"
-          class="aspect-square rounded-clay border-4 flex items-center justify-center text-3xl transition-all"
-          :class="getCellState(i - 1) === 'target' 
-            ? 'bg-clay-peach border-clay-peach-dark animate-pulse' 
-            : 'bg-white border-clay-peach-dark/30'"
-        >
-          <span v-if="getCellState(i - 1) === 'target'">🌟</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- 回忆阶段 -->
-    <div v-else-if="phase === 'recall'">
-      <div class="text-center mb-4">
-        <span class="font-body text-clay-text/70">
-          选择 {{ targetCount }} 个位置
-        </span>
-        <span class="font-heading text-lg text-clay-text ml-2">
-          ({{ selectedCells.length }}/{{ targetCount }})
-        </span>
-      </div>
-
+      <!-- 网格区域 - 统一样式 -->
       <div 
         class="grid gap-2 mb-6"
         :style="{ gridTemplateColumns: `repeat(${gridSize}, 1fr)` }"
@@ -167,24 +151,36 @@ onUnmounted(() => {
         <button
           v-for="i in totalCells"
           :key="i"
-          @click="clickCell(i - 1)"
-          class="aspect-square rounded-clay border-4 flex items-center justify-center text-3xl transition-all cursor-pointer"
-          :class="getCellState(i - 1) === 'selected' 
-            ? 'bg-clay-blue border-[#8BC4D6] scale-95' 
-            : 'bg-white border-clay-peach-dark/30 hover:bg-clay-bg'"
+          @click="phase === 'recall' ? clickCell(i - 1) : null"
+          class="aspect-square rounded-clay border-4 flex items-center justify-center text-3xl transition-all"
+          :class="[
+            phase === 'memorize' 
+              ? (getCellState(i - 1) === 'target' 
+                  ? 'bg-clay-peach border-clay-peach-dark animate-pulse' 
+                  : 'bg-white border-clay-peach-dark/30')
+              : (getCellState(i - 1) === 'selected' 
+                  ? 'bg-clay-blue border-[#8BC4D6] scale-95 cursor-pointer' 
+                  : 'bg-white border-clay-peach-dark/30 hover:bg-clay-bg cursor-pointer')
+          ]"
+          :disabled="phase === 'memorize'"
         >
-          <span v-if="getCellState(i - 1) === 'selected'">✓</span>
+          <span v-if="phase === 'memorize' && getCellState(i - 1) === 'target'">🌟</span>
+          <span v-if="phase === 'recall' && getCellState(i - 1) === 'selected'">✓</span>
         </button>
       </div>
 
-      <ClayButton 
-        size="lg" 
-        class="w-full"
-        :disabled="selectedCells.length !== targetCount"
-        @click="submitAnswer"
-      >
-        确认答案
-      </ClayButton>
+      <!-- 按钮区域 - 固定高度保持一致 -->
+      <div class="h-14">
+        <ClayButton 
+          v-if="phase === 'recall'"
+          size="lg" 
+          class="w-full"
+          :disabled="selectedCells.length !== targetCount"
+          @click="submitAnswer"
+        >
+          确认答案
+        </ClayButton>
+      </div>
     </div>
 
     <!-- 结果阶段 -->
