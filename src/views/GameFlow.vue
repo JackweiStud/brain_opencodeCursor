@@ -1,16 +1,14 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ClayButton, ClayCard } from '../components/common'
 import { SchulteGrid, MemoryGame, LogicGame, CreativeGame } from '../components/games'
 import { useGamesStore } from '../stores/games'
 import { useProfileStore } from '../stores/profile'
-import { useQuestionnaireEnhancedStore } from '../stores/questionnaireEnhanced'
 
 const router = useRouter()
 const gamesStore = useGamesStore()
 const profileStore = useProfileStore()
-const questionnaireStore = useQuestionnaireEnhancedStore()
 
 // 游戏类型
 type GameType = 'schulte' | 'memory' | 'logic' | 'creative'
@@ -31,6 +29,49 @@ const phase = ref<'intro' | 'playing' | 'transition' | 'complete'>('intro')
 const currentGameIndex = ref(0)
 const currentRound = ref(1)
 const showGameResult = ref(false)
+const autoNextSeconds = ref(3)
+const showAutoNext = ref(false)
+let autoNextTimer: number | null = null
+
+// 开始自动跳转倒计时
+const startAutoNext = (callback: () => void, seconds = 3) => {
+  cancelAutoNext()
+  showAutoNext.value = true
+  autoNextSeconds.value = seconds
+  
+  autoNextTimer = window.setInterval(() => {
+    autoNextSeconds.value--
+    if (autoNextSeconds.value <= 0) {
+      cleanupTimer()
+      callback()
+    }
+  }, 1000)
+}
+
+// 停止自动跳转
+const cancelAutoNext = () => {
+  cleanupTimer()
+}
+
+const cleanupTimer = () => {
+  if (autoNextTimer) {
+    clearInterval(autoNextTimer)
+    autoNextTimer = null
+  }
+  showAutoNext.value = false
+}
+
+// 监听阶段变化
+watch(phase, (newPhase) => {
+  if (newPhase === 'transition') {
+    // 游戏切换过渡时自动跳转
+    startAutoNext(continueToNextGame, 3)
+  }
+})
+
+onUnmounted(() => {
+  cleanupTimer()
+})
 
 // 当前游戏
 const currentGame = computed(() => gameOrder[currentGameIndex.value])
@@ -53,6 +94,7 @@ const startGames = () => {
 const onSchulteComplete = (time: number, errors: number) => {
   gamesStore.recordSchulte(time, errors)
   showGameResult.value = true
+  startAutoNext(nextRound, 3)
 }
 
 // 记忆游戏完成 - 延迟显示继续按钮，让用户看到结果
@@ -61,6 +103,7 @@ const onMemoryComplete = (score: number) => {
   // 延迟2秒后显示继续按钮，让用户看清结果
   setTimeout(() => {
     showGameResult.value = true
+    startAutoNext(nextRound, 3)
   }, 2000)
 }
 
@@ -70,6 +113,7 @@ const onLogicComplete = (correct: boolean, time: number) => {
   // 延迟2秒后显示继续按钮，让用户看清结果
   setTimeout(() => {
     showGameResult.value = true
+    startAutoNext(nextRound, 3)
   }, 2000)
 }
 
@@ -77,10 +121,12 @@ const onLogicComplete = (correct: boolean, time: number) => {
 const onCreativeComplete = (answers: string[]) => {
   gamesStore.recordCreative(answers)
   showGameResult.value = true
+  startAutoNext(nextRound, 3)
 }
 
 // 下一轮/下一个游戏
 const nextRound = () => {
+  cleanupTimer()
   showGameResult.value = false
   
   const maxRounds = currentGameConfig.value.rounds
@@ -103,6 +149,7 @@ const nextRound = () => {
 
 // 继续下一个游戏
 const continueToNextGame = () => {
+  cleanupTimer()
   phase.value = 'playing'
 }
 
@@ -211,7 +258,18 @@ onMounted(() => {
       />
 
       <!-- 轮次结果后的继续按钮 -->
-      <div v-if="showGameResult" class="w-full max-w-md mt-6 animate-fade-in">
+      <div v-if="showGameResult" class="w-full max-w-md mt-6 animate-fade-in text-center">
+        <div v-if="showAutoNext" class="mb-3 flex items-center justify-center gap-2">
+          <span class="text-sm text-clay-text/50 font-body">
+            {{ autoNextSeconds }} 秒后自动继续
+          </span>
+          <button 
+            @click="cancelAutoNext"
+            class="text-xs bg-clay-lilac/30 hover:bg-clay-lilac/50 text-clay-text/70 px-2 py-0.5 rounded-full transition-colors"
+          >
+            暂停
+          </button>
+        </div>
         <ClayButton size="lg" class="w-full" @click="nextRound">
           {{ currentRound < currentGameConfig.rounds ? '下一轮 →' : '继续 →' }}
         </ClayButton>
@@ -234,6 +292,17 @@ onMounted(() => {
         <p class="font-body text-sm text-clay-text/50 mb-6">
           {{ currentGameConfig.description }}
         </p>
+        <div v-if="showAutoNext" class="mb-3 flex items-center justify-center gap-2">
+          <span class="text-sm text-clay-text/50 font-body">
+            {{ autoNextSeconds }} 秒后自动开始
+          </span>
+          <button 
+            @click="cancelAutoNext"
+            class="text-xs bg-white/50 hover:bg-white text-clay-text/70 px-2 py-0.5 rounded-full transition-colors"
+          >
+            暂停
+          </button>
+        </div>
         <ClayButton size="lg" class="w-full" variant="secondary" @click="continueToNextGame">
           开始 →
         </ClayButton>

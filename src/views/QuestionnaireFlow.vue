@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { QuestionCard } from '../components/questionnaire'
 import { ClayButton, ClayCard } from '../components/common'
@@ -15,6 +15,51 @@ const profileStore = useProfileStore()
 // 状态
 const phase = ref<'intro' | 'intelligence' | 'transition' | 'interest' | 'complete'>('intro')
 const currentAnswer = ref<number | null>(null)
+
+// 自动跳转相关
+const autoNextSeconds = ref(2)
+const showAutoNext = ref(false)
+let autoNextTimer: number | null = null
+
+const startAutoNext = (callback: () => void, seconds = 5) => {
+  cancelAutoNext()
+  showAutoNext.value = true
+  autoNextSeconds.value = seconds
+  
+  autoNextTimer = window.setInterval(() => {
+    autoNextSeconds.value--
+    if (autoNextSeconds.value <= 0) {
+      cleanupTimer()
+      callback()
+    }
+  }, 1000)
+}
+
+const cancelAutoNext = () => {
+  cleanupTimer()
+}
+
+const cleanupTimer = () => {
+  if (autoNextTimer) {
+    clearInterval(autoNextTimer)
+    autoNextTimer = null
+  }
+  showAutoNext.value = false
+}
+
+watch(phase, (newPhase) => {
+  if (newPhase === 'transition') {
+    startAutoNext(continueToInterest, 5)
+  } else if (newPhase === 'complete') {
+    startAutoNext(goToGames, 8)
+  } else {
+    cleanupTimer()
+  }
+})
+
+onUnmounted(() => {
+  cleanupTimer()
+})
 
 // 当前年龄组的题目
 const intelligenceQuestions = computed(() => questionnaireStore.intelligenceQuestions)
@@ -51,7 +96,7 @@ const currentTypeInfo = computed(() => {
 })
 
 // 总进度
-const totalProgress = computed(() => questionnaireStore.progress)
+
 
 // 当前阶段问题序号
 const currentQuestionNumber = computed(() => {
@@ -86,9 +131,7 @@ const startQuestionnaire = () => {
 }
 
 // 处理答案选择
-const handleAnswer = (value: number) => {
-  currentAnswer.value = value
-}
+
 
 // 下一题
 const nextQuestion = () => {
@@ -118,12 +161,14 @@ const nextQuestion = () => {
 
 // 继续兴趣测评
 const continueToInterest = () => {
+  cleanupTimer()
   phase.value = 'interest'
   currentAnswer.value = null
 }
 
 // 前往游戏测评
 const goToGames = () => {
+  cleanupTimer()
   router.push('/games')
 }
 
@@ -251,6 +296,17 @@ onMounted(() => {
           </p>
         </div>
 
+        <div v-if="showAutoNext" class="mb-3 flex items-center justify-center gap-2">
+          <span class="text-sm text-clay-text/50 font-body">
+            {{ autoNextSeconds }} 秒后自动继续
+          </span>
+          <button 
+            @click="cancelAutoNext"
+            class="text-xs bg-clay-mint/30 hover:bg-clay-mint/50 text-clay-text/70 px-2 py-0.5 rounded-full transition-colors"
+          >
+            暂停
+          </button>
+        </div>
         <ClayButton size="lg" class="w-full" variant="secondary" @click="continueToInterest">
           继续测评 →
         </ClayButton>
@@ -311,6 +367,17 @@ onMounted(() => {
           </ul>
         </div>
 
+        <div v-if="showAutoNext" class="mb-3 flex items-center justify-center gap-2">
+          <span class="text-sm text-clay-text/50 font-body">
+            {{ autoNextSeconds }} 秒后自动进入互动测评
+          </span>
+          <button 
+            @click="cancelAutoNext"
+            class="text-xs bg-clay-lilac/30 hover:bg-clay-lilac/50 text-clay-text/70 px-2 py-0.5 rounded-full transition-colors"
+          >
+            暂停
+          </button>
+        </div>
         <ClayButton size="lg" class="w-full" variant="success" @click="goToGames">
           进入互动测评 →
         </ClayButton>

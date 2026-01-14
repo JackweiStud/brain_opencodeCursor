@@ -19,21 +19,18 @@ import {
   interestNameMap,
   getOverallAssessment
 } from '../utils/reportAnalysis'
-import { exportToPDF } from '../utils/pdfExport'
 import { addNormRecord } from '@/utils/normCollection'
 import { generateIntegratedAssessment } from '@/utils/gameQuestionnaireIntegration'
 import { useAIAssessment, hasApiKey } from '@/utils/aiAssessment'
 import { formatAssessmentData } from '@/utils/assessmentDataFormatter'
 
 const router = useRouter()
-const isExporting = ref(false)
 const profileStore = useProfileStore()
 const questionnaireStore = useQuestionnaireEnhancedStore()
 const gamesStore = useGamesStore()
 const reportStore = useReportStore()
 const testHistoryStore = useTestHistoryStore()
 
-const reportRef = ref<HTMLDivElement | null>(null)
 const isHistorySaved = ref(false)
 
 // ========== AI 评价状态 ==========
@@ -148,26 +145,6 @@ const printReport = () => {
   window.print()
 }
 
-const handleExportPDF = async () => {
-  const targetElement = reportRef.value || document.getElementById('report-content')
-  if (!targetElement) {
-    alert('报告内容未准备就绪')
-    return
-  }
-
-  isExporting.value = true
-  try {
-    await exportToPDF(targetElement as HTMLElement, {
-      filename: `童智星探-${profileStore.profile.name}-评估报告`
-    })
-  } catch (error: any) {
-    console.error('PDF Export Failed:', error)
-    alert('PDF 导出失败，建议使用打印功能另存为 PDF')
-  } finally {
-    isExporting.value = false
-  }
-}
-
 // 保存历史
 const saveToHistory = () => {
   if (isHistorySaved.value) return
@@ -230,7 +207,7 @@ onMounted(() => {
 <template>
   <div class="min-h-screen bg-report-bg">
     <!-- 报告主体 -->
-    <div ref="reportRef" id="report-content" class="max-w-4xl mx-auto py-8 px-4">
+    <div id="report-content" class="max-w-4xl mx-auto py-8 px-4">
       
       <!-- 1. 报告头部 -->
       <ReportHeader :profile="{
@@ -278,13 +255,6 @@ onMounted(() => {
           class="px-6 py-3 bg-white border border-report-border rounded-lg font-body text-report-text hover:bg-gray-50 transition-colors"
         >
           重新测评
-        </button>
-        <button
-          @click="handleExportPDF"
-          :disabled="isExporting"
-          class="px-6 py-3 bg-report-cta text-white rounded-lg font-body hover:bg-orange-600 transition-colors disabled:opacity-50"
-        >
-          {{ isExporting ? '导出中...' : '导出 PDF 📄' }}
         </button>
         <button
           @click="printReport"
