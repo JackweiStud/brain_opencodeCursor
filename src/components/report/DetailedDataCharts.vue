@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { RadarChart, ScoreCard, ConsistencyAnalysisCard, IntegratedScoresCard } from './index'
 
 interface Props {
@@ -22,6 +23,10 @@ const cognitiveNameMap = {
   logic: '逻辑思维',
   creativity: '创造力'
 }
+
+// 折叠状态（默认折叠）
+const isIntegratedScoresExpanded = ref(false)
+const isConsistencyExpanded = ref(false)
 </script>
 
 <template>
@@ -34,17 +39,55 @@ const cognitiveNameMap = {
 
     <!-- 游戏-问卷关联分析（仅在游戏完成后显示） -->
     <template v-if="showIntegrationAnalysis && integratedAssessment">
-      <!-- 综合智能评分 -->
-      <IntegratedScoresCard
-        :integrated-scores="integratedAssessment.integratedScores"
-        class="mb-6"
-      />
+      <!-- 综合智能评分（可折叠） -->
+      <div class="bg-white rounded-xl shadow-sm border border-report-border overflow-hidden mb-6">
+        <div 
+          @click="isIntegratedScoresExpanded = !isIntegratedScoresExpanded"
+          class="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+        >
+          <h2 class="font-heading text-lg text-report-text flex items-center gap-2">
+            📊 综合智能评分
+            <span class="text-xs text-gray-400 font-normal">（问卷+游戏加权）</span>
+          </h2>
+          <button 
+            class="text-gray-400 hover:text-gray-600 transition-transform duration-300"
+            :class="{ 'rotate-180': isIntegratedScoresExpanded }"
+          >
+            ▼
+          </button>
+        </div>
+        <div v-show="isIntegratedScoresExpanded" class="border-t border-gray-100">
+          <IntegratedScoresCard
+            :integrated-scores="integratedAssessment.integratedScores"
+            :hide-header="true"
+          />
+        </div>
+      </div>
 
-      <!-- 一致性分析 -->
-      <ConsistencyAnalysisCard
-        :consistency="integratedAssessment.consistency"
-        class="mb-6"
-      />
+      <!-- 一致性分析（可折叠） -->
+      <div class="bg-white rounded-xl shadow-sm border border-report-border overflow-hidden mb-6">
+        <div 
+          @click="isConsistencyExpanded = !isConsistencyExpanded"
+          class="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+        >
+          <h2 class="font-heading text-lg text-report-text flex items-center gap-2">
+            🔍 问卷-游戏一致性分析
+            <span class="text-xs text-gray-400 font-normal">（数据可信度验证）</span>
+          </h2>
+          <button 
+            class="text-gray-400 hover:text-gray-600 transition-transform duration-300"
+            :class="{ 'rotate-180': isConsistencyExpanded }"
+          >
+            ▼
+          </button>
+        </div>
+        <div v-show="isConsistencyExpanded" class="border-t border-gray-100">
+          <ConsistencyAnalysisCard
+            :consistency="integratedAssessment.consistency"
+            :hide-header="true"
+          />
+        </div>
+      </div>
     </template>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">

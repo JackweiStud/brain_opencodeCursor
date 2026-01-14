@@ -10,6 +10,7 @@ interface Props {
     weightedScore: number
     confidence: 'high' | 'medium' | 'low'
   }>
+  hideHeader?: boolean
 }
 
 const props = defineProps<Props>()
@@ -42,8 +43,8 @@ const getScoreColor = (score: number) => {
 </script>
 
 <template>
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-    <h2 class="font-heading text-xl text-gray-800 mb-4 flex items-center gap-2">
+  <div :class="hideHeader ? 'p-6' : 'bg-white rounded-xl shadow-sm border border-gray-100 p-6'">
+    <h2 v-if="!hideHeader" class="font-heading text-xl text-gray-800 mb-4 flex items-center gap-2">
       <span>🎯</span>
       <span>综合智能评分</span>
     </h2>
