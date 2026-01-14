@@ -4,3 +4,8 @@ export { default as ConsistencyAnalysisCard } from './ConsistencyAnalysisCard.vu
 export { default as IntegratedScoresCard } from './IntegratedScoresCard.vue'
 export { default as AIAssessmentCard } from './AIAssessmentCard.vue'
 export { default as ApiKeyModal } from './ApiKeyModal.vue'
+export { default as ReportHeader } from './ReportHeader.vue'
+export { default as ReportOverview } from './ReportOverview.vue'
+export { default as AIDeepAnalysis } from './AIDeepAnalysis.vue'
+export { default as DetailedDataCharts } from './DetailedDataCharts.vue'
+export { default as ReportFooter } from './ReportFooter.vue'

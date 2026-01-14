@@ -349,28 +349,34 @@ export const useQuestionnaireEnhancedStore = defineStore('questionnaireEnhanced'
 
   // 从questionId中提取类型
   function getQuestionType(questionId: string): string | null {
-    // linguistic: ling-01
-    // logical: logi-01
-    // realistic: real-01
-    const prefix = questionId.substring(0, 4)
-    const typeMap: Record<string, string> = {
-      'ling-': 'linguistic',
-      'logi-': 'logical',
-      'spat-': 'spatial',
-      'musi-': 'musical',
-      'bodi-': 'bodily',
-      'inte': 'interpersonal',
-      'intr': 'intrapersonal',
-      'natu-': 'naturalistic',
-      'real-': 'realistic',
-      'inve-': 'investigative',
-      'arti-': 'artistic',
-      'soci-': 'social',
-      'ente-': 'enterprising',
-      'conv-': 'conventional'
+    // 格式示例: ling-01, logi-01, real-01, inte-01, intr-01
+    // 提取前缀（到第一个 '-' 为止）
+    const dashIndex = questionId.indexOf('-')
+    if (dashIndex === -1) return null
+    
+    const prefix = questionId.substring(0, dashIndex)
+    const typeMap: Record<string, string | null> = {
+      // 多元智能 (8种)
+      'ling': 'linguistic',
+      'logi': 'logical',
+      'spat': 'spatial',
+      'musi': 'musical',
+      'bodi': 'bodily',
+      'inte': 'interpersonal',   // 人际智能
+      'intr': 'intrapersonal',   // 内省智能
+      'natu': 'naturalistic',
+      // 职业兴趣 (6种)
+      'real': 'realistic',
+      'inve': 'investigative',
+      'arti': 'artistic',
+      'soci': 'social',
+      'ente': 'enterprising',
+      'conv': 'conventional',
+      // 社会期望量表（测谎题，不计入分数）
+      'sds': null
     }
 
-    return typeMap[prefix] || null
+    return typeMap[prefix] ?? null
   }
 
   // 获取当前题目（用于问卷流程）
