@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useProfileStore } from './profile'
-import { useQuestionnaireStore } from './questionnaire'
+import { useQuestionnaireEnhancedStore } from './questionnaireEnhanced'
 import { useGamesStore } from './games'
 
 export const useReportStore = defineStore('report', () => {
   const profileStore = useProfileStore()
-  const questionnaireStore = useQuestionnaireStore()
+  const questionnaireStore = useQuestionnaireEnhancedStore()
   const gamesStore = useGamesStore()
 
   // State
