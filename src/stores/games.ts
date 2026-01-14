@@ -2,6 +2,15 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { normalizeGameResults } from '../utils/gameQuestionnaireIntegration'
 
+// 发散思维单轮结果
+export interface CreativeRoundResult {
+  promptItem: string      // 题目物品（如 "📎 回形针"）
+  promptQuestion: string  // 题目问题
+  promptCategory: string  // 题目类别（生活物品/科学探索/天文宇宙/哲学思辨）
+  referenceAnswers: string[]  // 参考答案
+  userAnswers: string[]   // 用户作答
+}
+
 export interface GameResults {
   schulte: {
     times: number[]      // 3次完成时间（秒）
@@ -15,7 +24,8 @@ export interface GameResults {
     times: number[]      // 3道题用时
   }
   creative: {
-    answers: string[][]  // 2道题的答案列表
+    rounds: CreativeRoundResult[]  // 2轮完整数据
+    answers: string[][]  // 兼容旧格式：2道题的答案列表
   }
 }
 
@@ -33,7 +43,7 @@ export const useGamesStore = defineStore('games', () => {
     schulte: { times: [], errors: [] },
     memory: { scores: [] },
     logic: { answers: [], times: [] },
-    creative: { answers: [] }
+    creative: { rounds: [], answers: [] }
   })
 
   const currentGame = ref<'schulte' | 'memory' | 'logic' | 'creative'>('schulte')
@@ -65,7 +75,11 @@ export const useGamesStore = defineStore('games', () => {
   })
 
   const creativeScore = computed(() => {
-    const answers = results.value.creative.answers
+    // 优先使用新格式，兼容旧格式
+    const rounds = results.value.creative.rounds
+    const answers = rounds.length > 0 
+      ? rounds.map(r => r.userAnswers) 
+      : results.value.creative.answers
     if (answers.length === 0) return 0
     // 评分：答案数量 + 多样性
     let totalAnswers = 0
@@ -110,8 +124,23 @@ export const useGamesStore = defineStore('games', () => {
     saveToStorage()
   }
 
-  function recordCreative(answers: string[]) {
+  function recordCreative(
+    answers: string[],
+    promptInfo?: { item: string; question: string; examples: string[]; category?: string }
+  ) {
+    // 兼容旧调用方式
     results.value.creative.answers.push(answers)
+    
+    // 如果有题目信息，存储完整数据
+    if (promptInfo) {
+      results.value.creative.rounds.push({
+        promptItem: promptInfo.item,
+        promptQuestion: promptInfo.question,
+        promptCategory: promptInfo.category || '生活物品',
+        referenceAnswers: promptInfo.examples,
+        userAnswers: answers
+      })
+    }
     saveToStorage()
   }
 
@@ -120,7 +149,7 @@ export const useGamesStore = defineStore('games', () => {
       schulte: { times: [], errors: [] },
       memory: { scores: [] },
       logic: { answers: [], times: [] },
-      creative: { answers: [] }
+      creative: { rounds: [], answers: [] }
     }
     currentGame.value = 'schulte'
     currentRound.value = 0

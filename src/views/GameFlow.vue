@@ -112,8 +112,11 @@ const onLogicComplete = (correct: boolean, time: number) => {
 }
 
 // 创意游戏完成
-const onCreativeComplete = (answers: string[]) => {
-  gamesStore.recordCreative(answers)
+const onCreativeComplete = (
+  answers: string[], 
+  promptInfo: { item: string; question: string; examples: string[]; category: string }
+) => {
+  gamesStore.recordCreative(answers, promptInfo)
   showGameResult.value = true
   startAutoNext(nextRound, 1.5)
 }

@@ -247,12 +247,30 @@ function formatGameResults(
         ).join('；')
         : '未完成'
 
-    // 创造力详情
-    const creativeDetails = gameResults.creative.answers.length > 0
-        ? gameResults.creative.answers.map((answers, i) =>
-            `第${i + 1}题：${answers.length}个答案 - ${answers.slice(0, 5).join('、')}${answers.length > 5 ? '...' : ''}`
+    // 创造力详情 - 使用完整数据格式
+    let creativeDetails = '未完成'
+    const creativeRounds = gameResults.creative.rounds
+    
+    if (creativeRounds && creativeRounds.length > 0) {
+        // 新格式：包含完整题目信息
+        creativeDetails = creativeRounds.map((round, i) => {
+            const userAnswersStr = round.userAnswers.length > 0 
+                ? round.userAnswers.join('、') 
+                : '（无）'
+            const refAnswersStr = round.referenceAnswers.join('、')
+            const categoryStr = round.promptCategory || '生活物品'
+            return `**第${i + 1}轮【${categoryStr}】**
+- 题目：${round.promptItem}
+- 问题：${round.promptQuestion}
+- 用户答案（${round.userAnswers.length}个）：${userAnswersStr}
+- 参考答案：${refAnswersStr}`
+        }).join('\n\n')
+    } else if (gameResults.creative.answers.length > 0) {
+        // 兼容旧格式
+        creativeDetails = gameResults.creative.answers.map((answers, i) =>
+            `第${i + 1}题：${answers.length}个答案 - ${answers.join('、')}`
         ).join('；')
-        : '未完成'
+    }
 
     return `# 认知能力游戏测试结果
 
