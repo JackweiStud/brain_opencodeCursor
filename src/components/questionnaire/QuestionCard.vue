@@ -10,6 +10,7 @@ interface Props {
   questionType?: string
   typeIcon?: string
   typeName?: string
+  typeDescription?: string  // 类型的年龄适配描述
   modelValue: number | null
 }
 
@@ -62,13 +63,18 @@ const progressPercent = computed(() => {
     <!-- 问题卡片 -->
     <ClayCard padding="lg" class="mb-6">
       <!-- 类型标签 -->
-      <div 
+      <div
         v-if="typeIcon && typeName"
-        class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-clay-lilac/50 mb-4"
+        class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-clay-lilac/50 mb-3"
       >
         <span class="text-lg">{{ typeIcon }}</span>
         <span class="font-body text-sm text-clay-text/70">{{ typeName }}</span>
       </div>
+
+      <!-- 类型描述（年龄适配） -->
+      <p v-if="typeDescription" class="font-body text-xs text-clay-text/50 mb-3 pl-1">
+        {{ typeDescription }}
+      </p>
 
       <!-- 问题文本 -->
       <h3 class="font-heading text-xl text-clay-text mb-8 leading-relaxed">

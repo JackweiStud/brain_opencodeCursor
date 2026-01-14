@@ -5,12 +5,12 @@ import { ClayButton, ClayCard } from '../components/common'
 import { SchulteGrid, MemoryGame, LogicGame, CreativeGame } from '../components/games'
 import { useGamesStore } from '../stores/games'
 import { useProfileStore } from '../stores/profile'
-import { useQuestionnaireStore } from '../stores/questionnaire'
+import { useQuestionnaireEnhancedStore } from '../stores/questionnaireEnhanced'
 
 const router = useRouter()
 const gamesStore = useGamesStore()
 const profileStore = useProfileStore()
-const questionnaireStore = useQuestionnaireStore()
+const questionnaireStore = useQuestionnaireEnhancedStore()
 
 // 游戏类型
 type GameType = 'schulte' | 'memory' | 'logic' | 'creative'

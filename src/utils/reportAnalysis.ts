@@ -1,7 +1,7 @@
 // 报告分析工具函数
 
-import { intelligenceTypes } from '../data/intelligenceQuestions'
-import { interestTypes } from '../data/interestQuestions'
+import { intelligenceTypesEnhanced } from '../data/intelligenceQuestionsEnhanced'
+import { interestTypesEnhanced } from '../data/interestQuestionsEnhanced'
 
 // 智能类型中文名称映射
 export const intelligenceNameMap: Record<string, string> = {
@@ -43,7 +43,7 @@ export function getIntelligenceSuggestions(scores: Record<string, number>) {
 
   const suggestions = {
     strengths: top3.map(([key, score]) => {
-      const type = intelligenceTypes.find(t => t.key === key)
+      const type = intelligenceTypesEnhanced.find(t => t.key === key)
       return {
         name: type?.name || key,
         icon: type?.icon || '📊',
@@ -52,7 +52,7 @@ export function getIntelligenceSuggestions(scores: Record<string, number>) {
       }
     }),
     improvements: bottom2.map(([key, score]) => {
-      const type = intelligenceTypes.find(t => t.key === key)
+      const type = intelligenceTypesEnhanced.find(t => t.key === key)
       return {
         name: type?.name || key,
         icon: type?.icon || '📊',
@@ -124,7 +124,7 @@ export function getHollandCode(scores: Record<string, number>): string {
     .sort(([, a], [, b]) => b - a)
     .slice(0, 3)
     .map(([key]) => {
-      const type = interestTypes.find(t => t.key === key)
+      const type = interestTypesEnhanced.find(t => t.key === key)
       return type?.code || ''
     })
     .join('')

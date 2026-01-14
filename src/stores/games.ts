@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { normalizeGameResults } from '../utils/gameQuestionnaireIntegration'
 
 export interface GameResults {
   schulte: {
@@ -16,6 +17,14 @@ export interface GameResults {
   creative: {
     answers: string[][]  // 2道题的答案列表
   }
+}
+
+// 标准化认知能力分数（0-100）
+export interface NormalizedCognitiveScores {
+  attention: number
+  memory: number
+  logic: number
+  creativity: number
 }
 
 export const useGamesStore = defineStore('games', () => {
@@ -67,6 +76,12 @@ export const useGamesStore = defineStore('games', () => {
     return quantityScore + diversityScore
   })
 
+  // 标准化认知能力分数（用于与问卷关联分析）
+  const normalizedScores = computed<NormalizedCognitiveScores>(() => {
+    return normalizeGameResults(results.value)
+  })
+
+  // 所有游戏是否完成
   const allGamesCompleted = computed(() => {
     return results.value.schulte.times.length >= 3 &&
            results.value.memory.scores.length >= 3 &&
@@ -137,6 +152,7 @@ export const useGamesStore = defineStore('games', () => {
     memoryScore,
     logicScore,
     creativeScore,
+    normalizedScores,
     allGamesCompleted,
     recordSchulte,
     recordMemory,
