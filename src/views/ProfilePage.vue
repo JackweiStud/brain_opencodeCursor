@@ -6,6 +6,7 @@ import { useProfileStore } from '../stores/profile'
 import { useQuestionnaireEnhancedStore } from '../stores/questionnaireEnhanced'
 import { useGamesStore } from '../stores/games'
 import { useReportStore } from '../stores/report'
+import { clearAIAssessmentStorage } from '@/utils/aiAssessment'
 
 const router = useRouter()
 const profileStore = useProfileStore()
@@ -71,6 +72,8 @@ const confirmClearData = () => {
   gamesStore.resetGames()
   reportStore.generatedAt = ''
   localStorage.removeItem('kidpotential_report')
+  // 清除 AI 评估结果
+  clearAIAssessmentStorage()
   
   showConfirmDialog.value = false
   saveAndProceed()

@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useProfileStore } from './profile'
 import { useQuestionnaireEnhancedStore } from './questionnaireEnhanced'
 import { useGamesStore } from './games'
+import { clearAIAssessmentStorage } from '@/utils/aiAssessment'
 
 export const useReportStore = defineStore('report', () => {
   const profileStore = useProfileStore()
@@ -62,6 +63,8 @@ export const useReportStore = defineStore('report', () => {
     gamesStore.resetGames()
     generatedAt.value = ''
     localStorage.removeItem('kidpotential_report')
+    // 清除 AI 评估结果
+    clearAIAssessmentStorage()
   }
 
   function saveToStorage() {
