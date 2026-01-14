@@ -44,8 +44,11 @@ export const useGamesStore = defineStore('games', () => {
     const times = results.value.schulte.times
     if (times.length === 0) return 0
     const avgTime = times.reduce((a, b) => a + b, 0) / times.length
-    // 评分：60秒以内100分，每多10秒减10分，最低0分
-    return Math.max(0, Math.round(100 - (avgTime - 60) / 10 * 10))
+    // 评分：基于平均完成时间
+    // 5秒以内满分100，60秒以上0分，线性递减
+    // 公式：100 - (avgTime - 5) * (100 / 55)
+    const score = 100 - (avgTime - 5) * (100 / 55)
+    return Math.max(0, Math.min(100, Math.round(score)))
   })
 
   const memoryScore = computed(() => {
