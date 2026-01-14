@@ -131,6 +131,11 @@ export const useGamesStore = defineStore('games', () => {
     // 兼容旧调用方式
     results.value.creative.answers.push(answers)
     
+    // 确保 rounds 数组存在（兼容旧数据）
+    if (!results.value.creative.rounds) {
+      results.value.creative.rounds = []
+    }
+    
     // 如果有题目信息，存储完整数据
     if (promptInfo) {
       results.value.creative.rounds.push({
@@ -171,6 +176,11 @@ export const useGamesStore = defineStore('games', () => {
       results.value = data.results
       currentGame.value = data.currentGame
       currentRound.value = data.currentRound
+      
+      // 兼容旧数据：确保 creative.rounds 存在
+      if (!results.value.creative.rounds) {
+        results.value.creative.rounds = []
+      }
     }
   }
 
