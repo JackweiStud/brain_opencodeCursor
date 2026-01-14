@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { RadarChart, ScoreCard, ConsistencyAnalysisCard, IntegratedScoresCard } from '../components/report'
+import { RadarChart, ScoreCard, ConsistencyAnalysisCard, IntegratedScoresCard, AIAssessmentCard, ApiKeyModal } from '../components/report'
 import { useProfileStore } from '../stores/profile'
 import { useQuestionnaireEnhancedStore } from '../stores/questionnaireEnhanced'
 import { useGamesStore } from '../stores/games'
@@ -19,6 +19,8 @@ import {
 import { exportToPDF } from '../utils/pdfExport'
 import { addNormRecord } from '@/utils/normCollection'
 import { generateIntegratedAssessment } from '@/utils/gameQuestionnaireIntegration'
+import { useAIAssessment, hasApiKey } from '@/utils/aiAssessment'
+import { formatAssessmentData } from '@/utils/assessmentDataFormatter'
 
 const router = useRouter()
 const isExporting = ref(false)
@@ -32,6 +34,50 @@ const reportRef = ref<HTMLDivElement | null>(null)
 
 // 标记当前报告是否已保存到历史（避免重复保存）
 const isHistorySaved = ref(false)
+
+// ========== AI 评价状态 ==========
+const aiAssessment = useAIAssessment()
+const showApiKeyModal = ref(false)
+
+// 生成 AI 评价
+const generateAIReport = async () => {
+  if (!hasApiKey()) {
+    showApiKeyModal.value = true
+    return
+  }
+
+  // 格式化评估数据
+  const formattedData = formatAssessmentData(
+    {
+      name: profileStore.profile.name,
+      age: profileStore.profile.age,
+      gender: profileStore.profile.gender as 'male' | 'female' | 'other',
+      ageGroup: profileStore.ageGroup as 'young' | 'middle' | 'teen'
+    },
+    questionnaireStore.answerRecords,
+    questionnaireStore.intelligenceQuestions,
+    questionnaireStore.interestQuestions,
+    questionnaireStore.intelligenceScores,
+    questionnaireStore.interestScores,
+    gamesStore.results,
+    {
+      attention: gamesStore.schulteScore,
+      memory: gamesStore.memoryScore,
+      logic: gamesStore.logicScore,
+      creativity: gamesStore.creativeScore
+    },
+    integratedAssessment.value?.consistency
+  )
+
+  // 调用 AI 生成
+  await aiAssessment.generate(formattedData.markdown)
+}
+
+// API Key 保存后的回调
+const onApiKeySaved = () => {
+  // 关闭弹窗后自动生成报告
+  generateAIReport()
+}
 
 // ========== 数据获取 ==========
 
@@ -323,6 +369,82 @@ onMounted(() => {
         </div>
       </div>
 
+      <!-- AI 综合评价 -->
+      <div class="bg-white rounded-xl shadow-sm border border-report-border p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-heading text-xl text-report-text flex items-center gap-2">
+            🤖 AI 智能评价
+          </h2>
+          <div class="flex items-center gap-2">
+            <button
+              v-if="!aiAssessment.state.value.result && !aiAssessment.state.value.loading"
+              @click="generateAIReport"
+              class="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-body text-sm hover:from-blue-600 hover:to-purple-600 transition-colors flex items-center gap-2"
+            >
+              <span>✨</span>
+              <span>生成 AI 评价</span>
+            </button>
+            <button
+              v-if="aiAssessment.state.value.result"
+              @click="generateAIReport"
+              :disabled="aiAssessment.state.value.loading"
+              class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg font-body text-xs hover:bg-gray-200 transition-colors"
+            >
+              🔄 重新生成
+            </button>
+            <button
+              @click="showApiKeyModal = true"
+              class="px-3 py-1.5 text-gray-500 hover:text-gray-700 font-body text-xs"
+            >
+              ⚙️ API 设置
+            </button>
+          </div>
+        </div>
+
+        <!-- 未生成时的提示 -->
+        <div v-if="!aiAssessment.state.value.result && !aiAssessment.state.value.loading && !aiAssessment.state.value.error" class="text-center py-8">
+          <p class="text-4xl mb-4">🌟</p>
+          <p class="font-body text-gray-600 mb-2">
+            使用 AI 为您的孩子生成个性化的发展评估报告
+          </p>
+          <p class="font-body text-sm text-gray-400">
+            基于答题数据和游戏表现，结合多元智能理论和成长型思维生成专业建议
+          </p>
+        </div>
+
+        <!-- 加载中 -->
+        <div v-if="aiAssessment.state.value.loading" class="text-center py-12">
+          <div class="inline-block animate-spin text-4xl mb-4">🔄</div>
+          <p class="font-body text-gray-600">AI 正在分析数据并生成评价...</p>
+          <p class="font-body text-sm text-gray-400 mt-2">这可能需要 5-10 秒，请稍候</p>
+        </div>
+
+        <!-- 错误提示 -->
+        <div v-if="aiAssessment.state.value.error" class="p-4 bg-red-50 rounded-lg border border-red-100 mb-4">
+          <p class="font-body text-sm text-red-700">
+            ❌ {{ aiAssessment.state.value.error }}
+          </p>
+          <button
+            @click="generateAIReport"
+            class="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded font-body text-sm hover:bg-red-200"
+          >
+            重试
+          </button>
+        </div>
+
+        <!-- AI 评价结果 -->
+        <AIAssessmentCard
+          v-if="aiAssessment.state.value.result"
+          :result="aiAssessment.state.value.result"
+          :loading="aiAssessment.state.value.loading"
+        />
+
+        <!-- 生成时间 -->
+        <p v-if="aiAssessment.state.value.generatedAt" class="text-xs text-gray-400 mt-4 text-right">
+          生成时间：{{ new Date(aiAssessment.state.value.generatedAt).toLocaleString('zh-CN') }}
+        </p>
+      </div>
+
       <!-- 游戏-问卷关联分析（仅在游戏完成后显示） -->
       <template v-if="showIntegrationAnalysis && integratedAssessment">
         <!-- 综合智能评分 -->
@@ -563,6 +685,13 @@ onMounted(() => {
         © 2026 童智星探 · 儿童发展潜力评估系统（增强版）
       </p>
     </div>
+
+    <!-- API Key 配置弹窗 -->
+    <ApiKeyModal
+      :show="showApiKeyModal"
+      @close="showApiKeyModal = false"
+      @saved="onApiKeySaved"
+    />
   </div>
 </template>
 
