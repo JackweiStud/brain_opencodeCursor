@@ -27,7 +27,7 @@
         </svg>
         <span class="brand-name">童智星探</span>
       </div>
-      <p class="copyright-text">© 2026 童智星探 · 儿童发展潜力评估系统（增强版）</p>
+      <p class="copyright-text">© 2026 童智星探 · 儿童发展潜力评估系统</p>
     </div>
   </div>
 </template>

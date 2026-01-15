@@ -218,8 +218,8 @@ onMounted(() => {
         <div class="bg-clay-lilac/30 rounded-clay p-4 mb-6 text-left">
           <p class="font-body text-sm text-clay-text/70 mb-2">📝 测评包含：</p>
           <ul class="font-body text-sm text-clay-text/70 space-y-1">
-            <li>• 多元智能评估：{{ intelligenceQuestions.length }} 道题（增强版）</li>
-            <li>• 职业兴趣评估：{{ interestQuestions.length }} 道题（增强版）</li>
+            <li>• 多元智能评估：{{ intelligenceQuestions.length }} 道题</li>
+            <li>• 职业兴趣评估：{{ interestQuestions.length }} 道题</li>
             <li>• 包含年龄适配题目</li>
             <li>• 预计用时：15-20 分钟</li>
           </ul>
