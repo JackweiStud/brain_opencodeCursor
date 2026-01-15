@@ -43,3 +43,6 @@ coverage/
 # Temp files
 *.tmp
 *.temp
+
+# Git worktrees
+.worktrees/
