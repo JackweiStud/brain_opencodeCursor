@@ -1,21 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import {
-  getIntelligenceChineseName,
-  getConsistencyInterpretation,
-  getConsistencyColor
-} from '@/utils/gameQuestionnaireIntegration'
+import { getIntelligenceChineseName, getConsistencyInterpretation, getConsistencyColor } from '@/utils/gameQuestionnaireIntegration'
 
 interface Props {
   consistency: {
     overall: number
-    byDimension: Record<string, {
-      questionnaireScore: number
-      gameScore: number
-      consistency: number
-      gap: number
-      interpretation: string
-    }>
+    byDimension: Record<string, { questionnaireScore: number; gameScore: number; consistency: number; gap: number; interpretation: string }>
     reliableDimensions: string[]
     alertDimensions: string[]
   }
@@ -24,163 +14,147 @@ interface Props {
 
 const props = defineProps<Props>()
 
-// 按一致性排序的维度列表
-const sortedDimensions = computed(() => {
-  return Object.entries(props.consistency.byDimension)
-    .sort(([, a], [, b]) => b.consistency - a.consistency)
-})
+const sortedDimensions = computed(() => Object.entries(props.consistency.byDimension).sort(([, a], [, b]) => b.consistency - a.consistency))
 
-// 获取一致性等级文本
 const overallLevel = computed(() => {
-  const score = props.consistency.overall
-  if (score >= 70) return { text: '高度一致', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' }
-  if (score >= 50) return { text: '基本一致', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200' }
-  return { text: '存在差异', color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' }
+  const s = props.consistency.overall
+  if (s >= 70) return { text: '高度一致', cls: 'lvl-high' }
+  if (s >= 50) return { text: '基本一致', cls: 'lvl-mid' }
+  return { text: '存在差异', cls: 'lvl-low' }
 })
 
-// 获取条形图宽度
-const getBarWidth = (score: number) => `${Math.min(100, score)}%`
+const getBarWidth = (s: number) => `${Math.min(100, s)}%`
 </script>
 
 <template>
-  <div :class="hideHeader ? 'p-6' : 'bg-white rounded-xl shadow-sm border border-gray-100 p-6'">
-    <h2 v-if="!hideHeader" class="font-heading text-xl text-gray-800 mb-4 flex items-center gap-2">
-      <span>🔗</span>
-      <span>问卷-游戏一致性分析</span>
+  <div :class="hideHeader ? 'p-6' : 'cac-box'">
+    <h2 v-if="!hideHeader" class="cac-title">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      问卷-游戏一致性分析
     </h2>
 
-    <!-- 总体一致性 -->
-    <div :class="[`p-4 rounded-lg border mb-6`, overallLevel.bg, overallLevel.border]">
-      <div class="flex items-center justify-between">
-        <div>
-          <span class="font-body text-sm text-gray-600">总体一致性</span>
-          <p :class="[`font-heading text-3xl`, overallLevel.color]">
-            {{ consistency.overall }}%
-          </p>
-        </div>
-        <div class="text-right">
-          <span :class="[`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium`, overallLevel.bg, overallLevel.color]">
-            {{ overallLevel.text }}
-          </span>
-        </div>
+    <div class="overall" :class="overallLevel.cls">
+      <div class="ov-left">
+        <span class="ov-lbl">总体一致性</span>
+        <p class="ov-val">{{ consistency.overall }}%</p>
       </div>
-
-      <!-- 一致性说明 -->
-      <p class="font-body text-sm text-gray-600 mt-2">
+      <div class="ov-right">
+        <span class="ov-badge">{{ overallLevel.text }}</span>
+      </div>
+      <p class="ov-desc">
         <template v-if="consistency.overall >= 70">
-          ✅ 问卷自评与游戏测试结果高度吻合，评估结果可信度高
+          <svg class="ic-s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          问卷自评与游戏测试结果高度吻合，评估结果可信度高
         </template>
         <template v-else-if="consistency.overall >= 50">
-          ⚠️ 问卷与游戏结果基本一致，部分维度存在正常差异
+          <svg class="ic-s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          问卷与游戏结果基本一致，部分维度存在正常差异
         </template>
         <template v-else>
-          ❗ 问卷自评与实际表现差异较大，建议结合两者综合解读
+          <svg class="ic-s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          问卷自评与实际表现差异较大，建议结合两者综合解读
         </template>
       </p>
     </div>
 
-    <!-- 可信维度 -->
-    <div v-if="consistency.reliableDimensions.length > 0" class="mb-4">
-      <h3 class="font-body text-sm font-semibold text-gray-700 mb-2">✅ 可信维度（两者一致）</h3>
-      <div class="flex flex-wrap gap-2">
-        <span
-          v-for="dim in consistency.reliableDimensions"
-          :key="dim"
-          class="px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-body"
-        >
-          {{ getIntelligenceChineseName(dim) }}
-        </span>
+    <div v-if="consistency.reliableDimensions.length > 0" class="dims">
+      <h3 class="dim-title reliable">
+        <svg class="ic-s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        可信维度（两者一致）
+      </h3>
+      <div class="dim-tags">
+        <span v-for="dim in consistency.reliableDimensions" :key="dim" class="dim-tag reliable">{{ getIntelligenceChineseName(dim) }}</span>
       </div>
     </div>
 
-    <!-- 需关注维度 -->
-    <div v-if="consistency.alertDimensions.length > 0" class="mb-4">
-      <h3 class="font-body text-sm font-semibold text-gray-700 mb-2">⚠️ 需关注维度（存在差异）</h3>
-      <div class="flex flex-wrap gap-2">
-        <span
-          v-for="dim in consistency.alertDimensions"
-          :key="dim"
-          class="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm font-body"
-        >
-          {{ getIntelligenceChineseName(dim) }}
-        </span>
+    <div v-if="consistency.alertDimensions.length > 0" class="dims">
+      <h3 class="dim-title alert">
+        <svg class="ic-s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        需关注维度（存在差异）
+      </h3>
+      <div class="dim-tags">
+        <span v-for="dim in consistency.alertDimensions" :key="dim" class="dim-tag alert">{{ getIntelligenceChineseName(dim) }}</span>
       </div>
     </div>
 
-    <!-- 详细对比 -->
-    <div class="mt-6">
-      <h3 class="font-body text-sm font-semibold text-gray-700 mb-3">📊 维度详细对比</h3>
-      <div class="space-y-3">
-        <div
-          v-for="[key, data] in sortedDimensions"
-          :key="key"
-          class="border border-gray-100 rounded-lg p-3"
-        >
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-body text-sm font-medium text-gray-700">
-              {{ getIntelligenceChineseName(key) }}
-            </span>
-            <span
-              class="text-xs px-2 py-0.5 rounded-full"
-              :style="{
-                backgroundColor: getConsistencyColor(data.consistency) + '20',
-                color: getConsistencyColor(data.consistency)
-              }"
-            >
+    <div class="detail">
+      <h3 class="det-title">
+        <svg class="ic-s" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        维度详细对比
+      </h3>
+      <div class="det-list">
+        <div v-for="[key, data] in sortedDimensions" :key="key" class="det-card">
+          <div class="det-head">
+            <span class="det-name">{{ getIntelligenceChineseName(key) }}</span>
+            <span class="det-badge" :style="{ backgroundColor: getConsistencyColor(data.consistency) + '20', color: getConsistencyColor(data.consistency) }">
               {{ getConsistencyInterpretation(data.consistency) }} ({{ data.consistency }}%)
             </span>
           </div>
-
-          <!-- 分数对比条形图 -->
-          <div class="space-y-1.5">
-            <!-- 问卷分数 -->
-            <div class="flex items-center gap-2">
-              <span class="text-xs text-gray-500 w-12">问卷</span>
-              <div class="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                <div
-                  class="h-full bg-blue-500 rounded-full transition-all duration-500"
-                  :style="{ width: getBarWidth(data.questionnaireScore) }"
-                />
-              </div>
-              <span class="text-xs text-gray-600 w-8 text-right">{{ data.questionnaireScore }}</span>
-            </div>
-
-            <!-- 游戏分数 -->
-            <div class="flex items-center gap-2">
-              <span class="text-xs text-gray-500 w-12">游戏</span>
-              <div class="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                <div
-                  class="h-full bg-purple-500 rounded-full transition-all duration-500"
-                  :style="{ width: getBarWidth(data.gameScore) }"
-                />
-              </div>
-              <span class="text-xs text-gray-600 w-8 text-right">{{ data.gameScore }}</span>
-            </div>
+          <div class="bars">
+            <div class="bar-row"><span class="bar-lbl">问卷</span><div class="bar-track"><div class="bar-q" :style="{ width: getBarWidth(data.questionnaireScore) }"></div></div><span class="bar-val">{{ data.questionnaireScore }}</span></div>
+            <div class="bar-row"><span class="bar-lbl">游戏</span><div class="bar-track"><div class="bar-g" :style="{ width: getBarWidth(data.gameScore) }"></div></div><span class="bar-val">{{ data.gameScore }}</span></div>
           </div>
-
-          <!-- 差距说明 -->
-          <p class="text-xs text-gray-500 mt-2">
-            {{ data.interpretation }}
-            <span class="ml-2" :class="data.gap > 30 ? 'text-red-500' : 'text-gray-400'">
-              (差距: {{ data.gap }}分)
-            </span>
-          </p>
+          <p class="det-note">{{ data.interpretation }} <span :class="data.gap > 30 ? 'gap-alert' : 'gap-normal'">(差距: {{ data.gap }}分)</span></p>
         </div>
       </div>
     </div>
 
-    <!-- 图例 -->
-    <div class="mt-4 pt-4 border-t border-gray-100">
-      <div class="flex items-center gap-4 text-xs text-gray-500">
-        <div class="flex items-center gap-1">
-          <div class="w-3 h-3 rounded-full bg-blue-500"></div>
-          <span>问卷自评分数</span>
-        </div>
-        <div class="flex items-center gap-1">
-          <div class="w-3 h-3 rounded-full bg-purple-500"></div>
-          <span>游戏测试分数</span>
-        </div>
-      </div>
+    <div class="legend">
+      <div class="leg-item"><div class="leg-dot bg-blue"></div><span>问卷自评分数</span></div>
+      <div class="leg-item"><div class="leg-dot bg-purple"></div><span>游戏测试分数</span></div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.cac-box{background:linear-gradient(135deg,rgba(255,255,255,.95),rgba(248,250,252,.95));backdrop-filter:blur(20px);border-radius:1.25rem;border:1px solid rgba(226,232,240,.8);box-shadow:0 4px 6px -1px rgba(0,0,0,.05),0 10px 15px -3px rgba(0,0,0,.08);padding:1.5rem;margin-bottom:1.5rem}
+.cac-title{font-size:1.25rem;font-weight:700;color:#1e293b;display:flex;align-items:center;gap:.5rem;margin-bottom:1rem}
+.ic{width:1.375rem;height:1.375rem;color:#3b82f6}
+.ic-s{width:1rem;height:1rem;flex-shrink:0}
+.overall{border-radius:1rem;padding:1.25rem;margin-bottom:1rem;display:grid;grid-template-columns:1fr auto;gap:.75rem}
+.lvl-high{background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(52,211,153,.12));border:1px solid rgba(16,185,129,.2)}
+.lvl-mid{background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(245,158,11,.12));border:1px solid rgba(251,191,36,.2)}
+.lvl-low{background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(248,113,113,.12));border:1px solid rgba(239,68,68,.2)}
+.ov-lbl{font-size:.875rem;color:#64748b}
+.ov-val{font-size:2rem;font-weight:800;margin-top:.25rem}
+.lvl-high .ov-val{color:#059669}
+.lvl-mid .ov-val{color:#d97706}
+.lvl-low .ov-val{color:#dc2626}
+.ov-badge{display:inline-flex;padding:.5rem 1rem;border-radius:9999px;font-size:.875rem;font-weight:600}
+.lvl-high .ov-badge{background:rgba(16,185,129,.15);color:#059669}
+.lvl-mid .ov-badge{background:rgba(251,191,36,.15);color:#d97706}
+.lvl-low .ov-badge{background:rgba(239,68,68,.15);color:#dc2626}
+.ov-desc{grid-column:1/-1;display:flex;align-items:center;gap:.5rem;font-size:.875rem;color:#64748b;margin-top:.5rem}
+.dims{margin-bottom:1rem}
+.dim-title{font-size:.875rem;font-weight:600;display:flex;align-items:center;gap:.375rem;margin-bottom:.5rem}
+.dim-title.reliable{color:#059669}
+.dim-title.alert{color:#ea580c}
+.dim-tags{display:flex;flex-wrap:wrap;gap:.375rem}
+.dim-tag{padding:.375rem .75rem;border-radius:9999px;font-size:.8125rem;font-weight:500}
+.dim-tag.reliable{background:rgba(16,185,129,.1);color:#059669;border:1px solid rgba(16,185,129,.2)}
+.dim-tag.alert{background:rgba(239,68,68,.1);color:#dc2626;border:1px solid rgba(239,68,68,.2)}
+.detail{margin-top:1.5rem}
+.det-title{font-size:.875rem;font-weight:600;color:#475569;display:flex;align-items:center;gap:.375rem;margin-bottom:.75rem}
+.det-title svg{color:#3b82f6}
+.det-list{display:flex;flex-direction:column;gap:.75rem}
+.det-card{background:#fff;border:1px solid rgba(226,232,240,.8);border-radius:.875rem;padding:1rem;transition:all .2s}
+.det-card:hover{border-color:#cbd5e1;box-shadow:0 4px 12px rgba(0,0,0,.04)}
+.det-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.det-name{font-size:.9375rem;font-weight:600;color:#334155}
+.det-badge{font-size:.6875rem;padding:.25rem .625rem;border-radius:9999px;font-weight:600}
+.bars{display:flex;flex-direction:column;gap:.5rem}
+.bar-row{display:flex;align-items:center;gap:.5rem}
+.bar-lbl{width:2.5rem;font-size:.75rem;color:#94a3b8}
+.bar-track{flex:1;height:.625rem;background:#f1f5f9;border-radius:9999px;overflow:hidden}
+.bar-q{background:linear-gradient(90deg,#3b82f6,#60a5fa);height:100%;border-radius:9999px;transition:width .5s}
+.bar-g{background:linear-gradient(90deg,#8b5cf6,#a78bfa);height:100%;border-radius:9999px;transition:width .5s}
+.bar-val{width:2rem;text-align:right;font-size:.75rem;color:#64748b;font-weight:600}
+.det-note{font-size:.75rem;color:#94a3b8;margin-top:.5rem}
+.gap-alert{color:#dc2626}
+.gap-normal{color:#94a3b8}
+.legend{display:flex;align-items:center;gap:1.25rem;padding-top:1rem;margin-top:1rem;border-top:1px solid rgba(226,232,240,.6)}
+.leg-item{display:flex;align-items:center;gap:.375rem;font-size:.75rem;color:#64748b}
+.leg-dot{width:.75rem;height:.75rem;border-radius:9999px}
+.bg-blue{background:linear-gradient(135deg,#3b82f6,#60a5fa)}
+.bg-purple{background:linear-gradient(135deg,#8b5cf6,#a78bfa)}
+</style>
