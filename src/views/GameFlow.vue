@@ -17,8 +17,8 @@ type GameType = 'schulte' | 'memory' | 'logic' | 'creative'
 const gameConfigs = {
   schulte: { name: '舒尔特方格', icon: '🎯', rounds: 3, description: '测试注意力集中能力' },
   memory: { name: '图形记忆', icon: '🧠', rounds: 3, description: '测试短期记忆能力' },
-  logic: { name: '逻辑推理', icon: '🧩', rounds: 3, description: '测试逻辑思维能力' },
-  creative: { name: '发散思维', icon: '💡', rounds: 2, description: '测试创造力和想象力' }
+  logic: { name: '逻辑推理', icon: '🧩', rounds: 6, description: '测试逻辑思维能力（3难度×2题）' },
+  creative: { name: '发散思维', icon: '💡', rounds: 8, description: '测试创造力和想象力（4类×2题）' }
 }
 
 // 游戏顺序

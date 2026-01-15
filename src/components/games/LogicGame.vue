@@ -169,24 +169,45 @@ const questionsByRound = [
   ]
 ]
 
+// 游戏初始化时，从每个难度等级随机抽取2题，形成6题序列
+const selectedQuestions = ref<Array<typeof questionsByRound[0][0]>>([])
+
+// Fisher-Yates 洗牌算法 - 确保真正随机且不重复
+const shuffleArray = <T>(array: T[]): T[] => {
+  const result = [...array]
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[result[i], result[j]] = [result[j], result[i]]
+  }
+  return result
+}
+
+// 初始化题目序列 - 从每个难度等级抽取2题
+const initializeQuestions = () => {
+  const selected: Array<typeof questionsByRound[0][0]> = []
+  
+  questionsByRound.forEach(difficultyQuestions => {
+    // 使用 Fisher-Yates 洗牌确保随机不重复
+    const shuffled = shuffleArray(difficultyQuestions)
+    selected.push(...shuffled.slice(0, 2))
+  })
+  
+  selectedQuestions.value = selected
+}
+
 // 游戏状态
 const phase = ref<'playing' | 'result'>('playing')
-
-// 组件挂载后自动开始游戏
-onMounted(() => {
-  startGame()
-})
 const currentQuestion = ref(questionsByRound[0][0])
 const selectedOption = ref<number | null>(null)
 const startTime = ref(0)
 const elapsedTime = ref(0)
 
-// 根据轮次选择题目 - 从对应难度组随机选择
+// 根据当前轮次选择题目
 const selectQuestion = () => {
-  const roundIndex = Math.min(props.round - 1, questionsByRound.length - 1)
-  const questions = questionsByRound[roundIndex]
-  const randomIndex = Math.floor(Math.random() * questions.length)
-  currentQuestion.value = questions[randomIndex]
+  const index = props.round - 1
+  if (index >= 0 && index < selectedQuestions.value.length) {
+    currentQuestion.value = selectedQuestions.value[index]
+  }
 }
 
 // 开始游戏
@@ -196,6 +217,12 @@ const startGame = () => {
   startTime.value = Date.now()
   phase.value = 'playing'
 }
+
+// 组件挂载后先初始化题目序列，再开始游戏
+onMounted(() => {
+  initializeQuestions()
+  startGame()
+})
 
 // 选择答案
 const selectAnswer = (index: number) => {
@@ -218,6 +245,14 @@ const submitAnswer = () => {
 const isCorrect = computed(() => {
   return selectedOption.value === currentQuestion.value.answer
 })
+
+// 当前题目的难度级别
+const difficulty = computed(() => {
+  const index = props.round - 1
+  if (index < 2) return '简单'
+  if (index < 4) return '中等'
+  return '困难'
+})
 </script>
 
 <template>
@@ -225,6 +260,20 @@ const isCorrect = computed(() => {
     <!-- 游戏进行中 -->
     <div v-if="phase === 'playing'">
       <ClayCard padding="lg" class="mb-6">
+        <!-- 难度标签 -->
+        <div class="text-center mb-3">
+          <span 
+            class="inline-block px-3 py-1 rounded-full font-body text-xs"
+            :class="{
+              'bg-green-100 text-green-700': difficulty === '简单',
+              'bg-yellow-100 text-yellow-700': difficulty === '中等',
+              'bg-red-100 text-red-700': difficulty === '困难'
+            }"
+          >
+            难度：{{ difficulty }}
+          </span>
+        </div>
+        
         <p class="font-body text-sm text-clay-text/50 mb-4 text-center">
           找出规律，选择 ? 应该是什么
         </p>

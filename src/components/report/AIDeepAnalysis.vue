@@ -49,15 +49,9 @@ const safeResult = computed(() => {
   const careerAnalysis = r.careerInterests?.codeInterpretation || 
     r.careerInterests?.analysis || ''
   
-  // 映射 developmentSuggestions
-  const strengthEnhancement = r.developmentSuggestions?.strengthEnhancement ||
-    (r.developmentSuggestions?.strengthNurturing || [])
-      .map((s: any) => `【${s.area}】${s.how}（${s.frequency}）`)
-      .join(' ') || ''
-  const weaknessImprovement = r.developmentSuggestions?.weaknessImprovement ||
-    (r.developmentSuggestions?.explorationAreas || [])
-      .map((s: any) => `【${s.area}】${s.startingPoint}`)
-      .join(' ') || ''
+  // 映射 developmentSuggestions - 保持数组格式，不拼接字符串
+  const strengthEnhancement = r.developmentSuggestions?.strengthNurturing || []
+  const weaknessImprovement = r.developmentSuggestions?.explorationAreas || []
   
   // 映射 attentionPoints
   let attentionPointsArray: string[] = []
@@ -140,9 +134,7 @@ const safeResult = computed(() => {
             <div v-if="item.percentile > 0" class="text-xs text-green-600 font-medium mb-3">
               超过 {{ item.percentile }}% 同龄人
             </div>
-            <div v-else class="text-xs text-gray-400 mb-3">
-              (待常模数据积累)
-            </div>
+
             <p class="text-sm text-gray-600 leading-snug">{{ item.description }}</p>
           </div>
         </div>
@@ -207,19 +199,48 @@ const safeResult = computed(() => {
         </h3>
         <div class="space-y-4">
           <!-- 优势培养 -->
-          <div class="flex gap-4 p-4 bg-gray-50 rounded-lg">
-            <div class="text-2xl mt-1">🌟</div>
-            <div>
-              <h4 class="font-bold text-gray-800 mb-1">优势如何强化？</h4>
-              <p class="text-sm text-gray-600 leading-relaxed">{{ safeResult.developmentSuggestions?.strengthEnhancement }}</p>
+          <div class="p-4 bg-gray-50 rounded-lg">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-2xl">🌟</span>
+              <h4 class="font-bold text-gray-800">优势如何强化？</h4>
+            </div>
+            <div class="space-y-3">
+              <div 
+                v-for="(item, i) in safeResult.developmentSuggestions?.strengthEnhancement || []" 
+                :key="i"
+                class="flex gap-3 p-3 bg-white rounded-lg border border-gray-100"
+              >
+                <div class="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">
+                  {{ i + 1 }}
+                </div>
+                <div class="flex-1">
+                  <div class="font-medium text-gray-800 mb-1">{{ item.area }}</div>
+                  <p class="text-sm text-gray-600 mb-1">{{ item.how }}</p>
+                  <span class="inline-block text-xs px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full">{{ item.frequency }}</span>
+                </div>
+              </div>
             </div>
           </div>
           <!-- 弱项提升 -->
-          <div class="flex gap-4 p-4 bg-gray-50 rounded-lg">
-            <div class="text-2xl mt-1">🌱</div>
-            <div>
-              <h4 class="font-bold text-gray-800 mb-1">短板如何补充？</h4>
-              <p class="text-sm text-gray-600 leading-relaxed">{{ safeResult.developmentSuggestions?.weaknessImprovement }}</p>
+          <div class="p-4 bg-gray-50 rounded-lg">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-2xl">🌱</span>
+              <h4 class="font-bold text-gray-800">短板如何补充？</h4>
+            </div>
+            <div class="space-y-3">
+              <div 
+                v-for="(item, i) in safeResult.developmentSuggestions?.weaknessImprovement || []" 
+                :key="i"
+                class="flex gap-3 p-3 bg-white rounded-lg border border-gray-100"
+              >
+                <div class="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-bold text-sm">
+                  {{ i + 1 }}
+                </div>
+                <div class="flex-1">
+                  <div class="font-medium text-gray-800 mb-1">{{ item.area }}</div>
+                  <p class="text-sm text-gray-600">{{ item.startingPoint }}</p>
+                </div>
+              </div>
             </div>
           </div>
           <!-- 亲子活动 -->

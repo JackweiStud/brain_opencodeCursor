@@ -127,40 +127,40 @@ const USER_PROMPT_TEMPLATE = `请为以下儿童撰写发展潜力评估报告�
 {
   "childName": "姓名",
   "overallSummary": {
-    "opening": "温暖开场白（50-80字）",
-    "keyHighlight": "最重要发现（30字）"
+    "opening": "温暖开场白",
+    "keyHighlight": "最重要发现"
   },
   "strengthAnalysis": {
-    "topThree": [{"name": "优势名称", "score": 85, "description": "表现描述（50字）", "realLifeExample": "日常体现（30字）"}],
-    "uniqueTrait": "独特特质（40字）",
-    "summaryParagraph": "整体画像（80-120字）"
+    "topThree": [{"name": "优势名称", "score": 85, "description": "表现描述", "realLifeExample": "日常体现"}],
+    "uniqueTrait": "独特特质",
+    "summaryParagraph": "整体画像"
   },
   "developmentSuggestions": {
-    "strengthNurturing": [{"area": "领域", "why": "原因（20字）", "how": "方法（40字）", "frequency": "频率"}],
-    "explorationAreas": [{"area": "领域", "reason": "原因（20字）", "startingPoint": "入门建议（30字）"}],
+    "strengthNurturing": [{"area": "领域", "why": "原因", "how": "方法", "frequency": "频率"}],
+    "explorationAreas": [{"area": "领域", "reason": "原因", "startingPoint": "入门建议"}],
     "dailyActivities": ["活动1", "活动2", "活动3"]
   },
   "learningStyle": {
     "primaryType": "Visual/Auditory/ReadWrite/Kinesthetic",
     "primaryTypeChinese": "视觉型/听觉型/读写型/动觉型",
-    "characteristics": "特征描述（40字）",
+    "characteristics": "特征描述",
     "atHomeStrategies": ["策略1", "策略2", "策略3"],
     "communicationTip": "与老师沟通建议"
   },
   "careerInterests": {
     "hollandCode": "RIA",
-    "codeInterpretation": "代码解读（50字）",
-    "currentInterests": "当前兴趣领域（40字）",
+    "codeInterpretation": "代码解读",
+    "currentInterests": "当前兴趣领域",
     "futureDirections": ["方向1", "方向2", "方向3", "方向4", "方向5"]
   },
   "potentialPrediction": {
-    "shortTermVision": "1-2年发展预期（60字）",
-    "longTermVision": "长期发展展望（60字）",
-    "parentRole": "家长角色（40字）"
+    "shortTermVision": "1-2年发展预期",
+    "longTermVision": "长期发展展望",
+    "parentRole": "家长角色"
   },
   "attentionPoints": {
-    "areasToWatch": [{"area": "关注领域", "observation": "观察到的现象（30字）", "suggestion": "改善建议（40字）"}],
-    "encouragement": "结尾鼓励话语（50字）"
+    "areasToWatch": [{"area": "关注领域", "observation": "观察到的现象", "suggestion": "改善建议"}],
+    "encouragement": "结尾鼓励话语"
   },
   "metadata": {
     "reliabilityNote": "评估可信度说明",
@@ -243,7 +243,7 @@ export async function generateAIAssessment(
                     }
                 ],
                 generationConfig: {
-                    temperature: 0.5,
+                    temperature: 0.8,
                     topK: 40,
                     topP: 0.95,
                     maxOutputTokens: 4096,

@@ -20,12 +20,12 @@ export interface GameResults {
     scores: number[]     // 3次正确率（0-100）
   }
   logic: {
-    answers: boolean[]   // 3道题对错
-    times: number[]      // 3道题用时
+    answers: boolean[]   // 6道题对错（3难度×2题）
+    times: number[]      // 6道题用时
   }
   creative: {
-    rounds: CreativeRoundResult[]  // 2轮完整数据
-    answers: string[][]  // 兼容旧格式：2道题的答案列表
+    rounds: CreativeRoundResult[]  // 8轮完整数据（4类×2题）
+    answers: string[][]  // 兼容旧格式：8道题的答案列表
   }
 }
 
@@ -77,8 +77,8 @@ export const useGamesStore = defineStore('games', () => {
   const creativeScore = computed(() => {
     // 优先使用新格式，兼容旧格式
     const rounds = results.value.creative.rounds
-    const answers = rounds.length > 0 
-      ? rounds.map(r => r.userAnswers) 
+    const answers = rounds.length > 0
+      ? rounds.map(r => r.userAnswers)
       : results.value.creative.answers
     if (answers.length === 0) return 0
     // 评分：答案数量 + 多样性
@@ -101,9 +101,9 @@ export const useGamesStore = defineStore('games', () => {
   // 所有游戏是否完成
   const allGamesCompleted = computed(() => {
     return results.value.schulte.times.length >= 3 &&
-           results.value.memory.scores.length >= 3 &&
-           results.value.logic.answers.length >= 3 &&
-           results.value.creative.answers.length >= 2
+      results.value.memory.scores.length >= 3 &&
+      results.value.logic.answers.length >= 6 &&
+      results.value.creative.answers.length >= 8
   })
 
   // Actions
@@ -130,12 +130,12 @@ export const useGamesStore = defineStore('games', () => {
   ) {
     // 兼容旧调用方式
     results.value.creative.answers.push(answers)
-    
+
     // 确保 rounds 数组存在（兼容旧数据）
     if (!results.value.creative.rounds) {
       results.value.creative.rounds = []
     }
-    
+
     // 如果有题目信息，存储完整数据
     if (promptInfo) {
       results.value.creative.rounds.push({
@@ -176,7 +176,7 @@ export const useGamesStore = defineStore('games', () => {
       results.value = data.results
       currentGame.value = data.currentGame
       currentRound.value = data.currentRound
-      
+
       // 兼容旧数据：确保 creative.rounds 存在
       if (!results.value.creative.rounds) {
         results.value.creative.rounds = []

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { ClayButton, ClayCard } from '../common'
 
 interface Props {
@@ -143,6 +143,40 @@ const prompts = [
   }
 ]
 
+// 按类别组织题目
+const promptsByCategory = {
+  '生活物品': prompts.filter(p => p.category === '生活物品'),
+  '科学探索': prompts.filter(p => p.category === '科学探索'),
+  '天文宇宙': prompts.filter(p => p.category === '天文宇宙'),
+  '哲学思辨': prompts.filter(p => p.category === '哲学思辨')
+}
+
+// 游戏初始化时，从每个类别随机抽取2题，形成8题序列
+const selectedPrompts = ref<typeof prompts>([])
+
+// Fisher-Yates 洗牌算法 - 确保真正随机且不重复
+const shuffleArray = <T>(array: T[]): T[] => {
+  const result = [...array]
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[result[i], result[j]] = [result[j], result[i]]
+  }
+  return result
+}
+
+// 初始化题目序列 - 从每个类别抽取2题
+const initializePrompts = () => {
+  const selected: typeof prompts = []
+  
+  Object.values(promptsByCategory).forEach(categoryPrompts => {
+    // 使用 Fisher-Yates 洗牌确保随机不重复
+    const shuffled = shuffleArray(categoryPrompts)
+    selected.push(...shuffled.slice(0, 2))
+  })
+  
+  selectedPrompts.value = selected
+}
+
 // 游戏状态
 const phase = ref<'thinking' | 'result'>('thinking')
 const currentPrompt = ref(prompts[0])
@@ -151,10 +185,12 @@ const currentInput = ref('')
 const timeLeft = ref(60)
 const timer = ref<number | null>(null)
 
-// 选择题目
+// 根据当前轮次选择题目
 const selectPrompt = () => {
-  const index = (props.round - 1) % prompts.length
-  currentPrompt.value = prompts[index]
+  const index = props.round - 1
+  if (index >= 0 && index < selectedPrompts.value.length) {
+    currentPrompt.value = selectedPrompts.value[index]
+  }
 }
 
 // 开始游戏
@@ -218,8 +254,9 @@ const formatTime = (seconds: number) => {
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
-// 组件挂载后自动开始游戏
+// 组件挂载后先初始化题目序列，再开始游戏
 onMounted(() => {
+  initializePrompts()
   startGame()
 })
 
@@ -246,6 +283,13 @@ onUnmounted(() => {
       </div>
 
       <ClayCard padding="md" class="mb-4">
+        <!-- 类别标签 -->
+        <div class="text-center mb-2">
+          <span class="inline-block px-3 py-1 bg-clay-lilac/30 rounded-full font-body text-xs text-clay-text/70">
+            {{ currentPrompt.category }}
+          </span>
+        </div>
+        
         <!-- 题目 -->
         <div class="text-center mb-4">
           <span class="text-4xl">{{ currentPrompt.item }}</span>
